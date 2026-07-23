@@ -11,9 +11,15 @@ const TOKEN = process.env.TOKEN;
 const COOKIE = process.env.COOKIE;
 const BX_UA = process.env.BX_UA;
 const BX_UMIDTOKEN = process.env.BX_UMIDTOKEN;
+const CHAT_ID = process.env.CHAT_ID;
 
 if (!TOKEN || !COOKIE) {
   console.error('❌ Thiếu TOKEN hoặc COOKIE trong file .env');
+  process.exit(1);
+}
+
+if (!CHAT_ID) {
+  console.error('❌ Thiếu CHAT_ID trong file .env');
   process.exit(1);
 }
 
@@ -22,7 +28,7 @@ const getHeaders = () => ({
   'content-type': 'application/json',
   'cookie': COOKIE,
   'origin': 'https://chat.qwen.ai',
-  'referer': 'https://chat.qwen.ai/',
+  'referer': `https://chat.qwen.ai/c/${CHAT_ID}`,
   'source': 'web',
   'version': '0.2.76',
   'x-accel-buffering': 'no',
@@ -65,14 +71,16 @@ function extractText(responseText) {
 }
 
 app.get('/', (req, res) => {
-  res.json({ status: 'Qwen Proxy running 🚀' });
+  res.json({
+    status: 'Qwen Proxy running 🚀',
+    chat_id: CHAT_ID,
+  });
 });
 
 app.post('/proxy', async (req, res) => {
   const { prompt, model } = req.body;
   if (!prompt) return res.status(400).json({ error: 'Thiếu prompt' });
 
-  const chatId = uuidv4();
   const msgId = uuidv4();
   const selectedModel = model || 'qwen3.7-plus';
 
@@ -81,7 +89,7 @@ app.post('/proxy', async (req, res) => {
       stream: true,
       version: '2.1',
       incremental_output: true,
-      chat_id: chatId,
+      chat_id: CHAT_ID,
       chat_mode: 'normal',
       model: selectedModel,
       parent_id: null,
@@ -118,7 +126,7 @@ app.post('/proxy', async (req, res) => {
 
     console.log('📤 Sending to Qwen, model:', selectedModel);
     const response = await fetch(
-      `https://chat.qwen.ai/api/v2/chat/completions?chat_id=${chatId}`,
+      `https://chat.qwen.ai/api/v2/chat/completions?chat_id=${CHAT_ID}`,
       {
         method: 'POST',
         headers: getHeaders(),
@@ -151,4 +159,6 @@ app.post('/proxy', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Qwen Proxy chạy tại http://localhost:${PORT}`);
+  console.log(`📋 Chat ID: ${CHAT_ID}`);
+  console.log(`📋 Model mặc định: qwen3.7-plus`);
 });
