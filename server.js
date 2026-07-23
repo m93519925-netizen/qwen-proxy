@@ -9,6 +9,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.TOKEN;
 const COOKIE = process.env.COOKIE;
+const BX_UA = process.env.BX_UA;
+const BX_UMIDTOKEN = process.env.BX_UMIDTOKEN;
 
 if (!TOKEN || !COOKIE) {
   console.error('❌ Thiếu TOKEN hoặc COOKIE trong file .env');
@@ -22,9 +24,22 @@ const getHeaders = () => ({
   'origin': 'https://chat.qwen.ai',
   'referer': 'https://chat.qwen.ai/',
   'source': 'web',
+  'version': '0.2.76',
   'x-accel-buffering': 'no',
+  'x-request-id': uuidv4(),
+  'bx-ua': BX_UA || '',
+  'bx-umidtoken': BX_UMIDTOKEN || '',
+  'bx-v': '2.5.37',
+  'timezone': new Date().toString(),
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
+  'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-dest': 'empty',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-site': 'same-origin',
   'accept-encoding': 'identity',
+  'accept-language': 'vi-VN,vi;q=0.9',
 });
 
 function extractText(responseText) {
